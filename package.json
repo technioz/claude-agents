@@ -1,0 +1,57 @@
+{
+  "name": "@technioz/claude-agents",
+  "version": "1.0.0",
+  "description": "Multi-agent orchestration system for Claude Code - Complete SDLC automation with 9 specialized agents",
+  "keywords": [
+    "claude",
+    "ai-agents",
+    "orchestrator",
+    "sdlc",
+    "automation",
+    "developer-tools",
+    "multi-agent",
+    "architecture",
+    "claude-code"
+  ],
+  "author": "Gaurav Bhatia",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/technioz/claude-agents"
+  },
+  "bugs": {
+    "url": "https://github.com/technioz/claude-agents/issues"
+  },
+  "homepage": "https://github.com/technioz/claude-agents#readme",
+  "bin": {
+    "claude-agents": "./bin/cli.js"
+  },
+  "main": "src/index.js",
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint src bin",
+    "format": "prettier --write \"**/*.{js,json,md}\""
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "inquirer": "^8.2.6",
+    "fs-extra": "^11.2.0",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.1"
+  }
+}

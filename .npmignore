@@ -1,0 +1,39 @@
+# Source control
+.git/
+.gitignore
+
+# Tests
+tests/
+*.test.js
+coverage/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (keep README.md)
+docs/
+examples/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Development dependencies
+node_modules/

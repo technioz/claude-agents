@@ -1,0 +1,179 @@
+const fs = require('fs-extra');
+const path = require('path');
+const os = require('os');
+
+/**
+ * Get the target directory path based on installation location
+ * @param {string} location - 'global' or 'local'
+ * @returns {string} - Full path to .claude/agents directory
+ */
+function getTargetPath(location) {
+  if (location === 'global') {
+    return path.join(os.homedir(), '.claude', 'agents');
+  } else {
+    return path.join(process.cwd(), '.claude', 'agents');
+  }
+}
+
+/**
+ * Create .claude/agents directory structure
+ * @param {string} location - 'global' or 'local'
+ * @returns {string} - Path to created directory
+ */
+function createDirectory(location) {
+  const targetPath = getTargetPath(location);
+
+  // Create directory if it doesn't exist
+  fs.ensureDirSync(targetPath);
+
+  return targetPath;
+}
+
+/**
+ * Copy agent files to target directory
+ * @param {Array<string>} agents - List of agent names to copy
+ * @param {string} targetPath - Destination directory
+ */
+async function copyAgents(agents, targetPath) {
+  const templatePath = path.join(__dirname, '../../templates/agents');
+
+  for (const agent of agents) {
+    const sourceFile = path.join(templatePath, `${agent}.md`);
+    const targetFile = path.join(targetPath, `${agent}.md`);
+
+    // Check if source file exists
+    if (!fs.existsSync(sourceFile)) {
+      throw new Error(`Agent template not found: ${agent}.md`);
+    }
+
+    // Copy file
+    await fs.copy(sourceFile, targetFile, { overwrite: true });
+  }
+}
+
+/**
+ * Copy AGENTS_PROTOCOL.md to .claude directory
+ * @param {string} location - 'global' or 'local'
+ */
+async function copyProtocol(location) {
+  const targetBase = location === 'global'
+    ? path.join(os.homedir(), '.claude')
+    : path.join(process.cwd(), '.claude');
+
+  const sourcePath = path.join(__dirname, '../../templates/AGENTS_PROTOCOL.md');
+  const targetPath = path.join(targetBase, 'AGENTS_PROTOCOL.md');
+
+  await fs.copy(sourcePath, targetPath, { overwrite: true });
+}
+
+/**
+ * Get list of installed agents
+ * @param {string} location - 'global' or 'local'
+ * @returns {Array<string>} - List of installed agent names
+ */
+function getInstalledAgents(location) {
+  const targetPath = getTargetPath(location);
+
+  if (!fs.existsSync(targetPath)) {
+    return [];
+  }
+
+  const files = fs.readdirSync(targetPath);
+  return files
+    .filter(file => file.endsWith('.md'))
+    .map(file => file.replace('.md', ''));
+}
+
+/**
+ * Check if agent exists in target directory
+ * @param {string} agentName - Name of the agent
+ * @param {string} location - 'global' or 'local'
+ * @returns {boolean} - True if agent exists
+ */
+function agentExists(agentName, location) {
+  const targetPath = getTargetPath(location);
+  const agentFile = path.join(targetPath, `${agentName}.md`);
+  return fs.existsSync(agentFile);
+}
+
+/**
+ * Update existing agent file
+ * @param {string} agentName - Name of the agent to update
+ * @param {string} location - 'global' or 'local'
+ */
+async function updateAgent(agentName, location) {
+  const templatePath = path.join(__dirname, '../../templates/agents', `${agentName}.md`);
+  const targetPath = path.join(getTargetPath(location), `${agentName}.md`);
+
+  if (!fs.existsSync(templatePath)) {
+    throw new Error(`Agent template not found: ${agentName}.md`);
+  }
+
+  await fs.copy(templatePath, targetPath, { overwrite: true });
+}
+
+/**
+ * Create custom agent from template
+ * @param {string} agentName - Name of the custom agent
+ * @param {string} location - 'global' or 'local'
+ */
+async function createCustomAgent(agentName, location, metadata) {
+  const templatePath = path.join(__dirname, '../../templates/custom-agent-template.md');
+  const targetPath = path.join(getTargetPath(location), `${agentName}.md`);
+
+  // Read template
+  let template = await fs.readFile(templatePath, 'utf8');
+
+  // Replace placeholders
+  template = template.replace(/\{AGENT_NAME\}/g, agentName);
+  template = template.replace(/\{DESCRIPTION\}/g, metadata.description || 'Custom agent');
+  template = template.replace(/\{MODEL\}/g, metadata.model || 'sonnet');
+  template = template.replace(/\{COLOR\}/g, metadata.color || 'gray');
+
+  // Write to target
+  await fs.writeFile(targetPath, template, 'utf8');
+}
+
+/**
+ * Validate agent file structure
+ * @param {string} agentPath - Path to agent markdown file
+ * @returns {Object} - Validation result
+ */
+async function validateAgent(agentPath) {
+  if (!fs.existsSync(agentPath)) {
+    return { valid: false, errors: ['File does not exist'] };
+  }
+
+  const content = await fs.readFile(agentPath, 'utf8');
+  const errors = [];
+
+  // Check for frontmatter
+  if (!content.startsWith('---') && !content.includes('name:')) {
+    errors.push('Missing agent metadata (name, description, model, color)');
+  }
+
+  // Check for required sections
+  const requiredSections = ['Purpose', 'Duty', 'Instructions'];
+  for (const section of requiredSections) {
+    if (!content.includes(`## ${section}`) && !content.includes(`### ${section}`)) {
+      errors.push(`Missing required section: ${section}`);
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+}
+
+module.exports = {
+  getTargetPath,
+  createDirectory,
+  copyAgents,
+  copyProtocol,
+  getInstalledAgents,
+  agentExists,
+  updateAgent,
+  createCustomAgent,
+  validateAgent
+};
