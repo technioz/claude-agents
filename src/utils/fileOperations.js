@@ -3,6 +3,26 @@ const path = require('path');
 const os = require('os');
 
 /**
+ * Sanitize agent name to prevent path traversal and special characters
+ * @param {string} name - Agent name to sanitize
+ * @returns {string} - Sanitized name
+ * @throws {Error} - If name contains invalid characters
+ */
+function sanitizeAgentName(name) {
+  // Check for path traversal attempts
+  if (name.includes('/') || name.includes('\\') || name.includes('..')) {
+    throw new Error('Agent name cannot contain path separators');
+  }
+
+  // Only allow alphanumeric, hyphens, and underscores
+  if (!/^[A-Z0-9_-]+$/i.test(name)) {
+    throw new Error('Agent name can only contain letters, numbers, hyphens, and underscores');
+  }
+
+  return name;
+}
+
+/**
  * Get the target directory path based on installation location
  * @param {string} location - 'global' or 'local'
  * @returns {string} - Full path to .claude/agents directory
@@ -38,12 +58,15 @@ async function copyAgents(agents, targetPath) {
   const templatePath = path.join(__dirname, '../../templates/agents');
 
   for (const agent of agents) {
-    const sourceFile = path.join(templatePath, `${agent}.md`);
-    const targetFile = path.join(targetPath, `${agent}.md`);
+    // Sanitize agent name
+    const sanitizedAgent = sanitizeAgentName(agent);
+
+    const sourceFile = path.join(templatePath, `${sanitizedAgent}.md`);
+    const targetFile = path.join(targetPath, `${sanitizedAgent}.md`);
 
     // Check if source file exists
     if (!fs.existsSync(sourceFile)) {
-      throw new Error(`Agent template not found: ${agent}.md`);
+      throw new Error(`Agent template not found: ${sanitizedAgent}.md`);
     }
 
     // Copy file
@@ -102,11 +125,14 @@ function agentExists(agentName, location) {
  * @param {string} location - 'global' or 'local'
  */
 async function updateAgent(agentName, location) {
-  const templatePath = path.join(__dirname, '../../templates/agents', `${agentName}.md`);
-  const targetPath = path.join(getTargetPath(location), `${agentName}.md`);
+  // Sanitize agent name
+  const sanitizedName = sanitizeAgentName(agentName);
+
+  const templatePath = path.join(__dirname, '../../templates/agents', `${sanitizedName}.md`);
+  const targetPath = path.join(getTargetPath(location), `${sanitizedName}.md`);
 
   if (!fs.existsSync(templatePath)) {
-    throw new Error(`Agent template not found: ${agentName}.md`);
+    throw new Error(`Agent template not found: ${sanitizedName}.md`);
   }
 
   await fs.copy(templatePath, targetPath, { overwrite: true });
@@ -118,14 +144,17 @@ async function updateAgent(agentName, location) {
  * @param {string} location - 'global' or 'local'
  */
 async function createCustomAgent(agentName, location, metadata) {
+  // Sanitize agent name
+  const sanitizedName = sanitizeAgentName(agentName);
+
   const templatePath = path.join(__dirname, '../../templates/custom-agent-template.md');
-  const targetPath = path.join(getTargetPath(location), `${agentName}.md`);
+  const targetPath = path.join(getTargetPath(location), `${sanitizedName}.md`);
 
   // Read template
   let template = await fs.readFile(templatePath, 'utf8');
 
   // Replace placeholders
-  template = template.replace(/\{AGENT_NAME\}/g, agentName);
+  template = template.replace(/\{AGENT_NAME\}/g, sanitizedName);
   template = template.replace(/\{DESCRIPTION\}/g, metadata.description || 'Custom agent');
   template = template.replace(/\{MODEL\}/g, metadata.model || 'sonnet');
   template = template.replace(/\{COLOR\}/g, metadata.color || 'gray');
@@ -167,6 +196,7 @@ async function validateAgent(agentPath) {
 }
 
 module.exports = {
+  sanitizeAgentName,
   getTargetPath,
   createDirectory,
   copyAgents,

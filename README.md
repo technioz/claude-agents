@@ -388,6 +388,6 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ---
 
-**Made with ❤️ by Technioz**
+**Made by developers for developers**
 
 *Automate your SDLC with intelligent AI agents!*

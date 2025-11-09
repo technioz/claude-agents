@@ -27,6 +27,13 @@ async function create(agentName, options) {
       process.exit(1);
     }
 
+    // Validate agent name to prevent path traversal
+    if (agentName.includes('/') || agentName.includes('\\') || agentName.includes('..')) {
+      Logger.error('Agent name cannot contain path separators or relative paths');
+      Logger.info('Use only letters, numbers, hyphens, and underscores');
+      process.exit(1);
+    }
+
     // Convert to uppercase and replace spaces with hyphens
     const normalizedName = agentName.toUpperCase().replace(/\s+/g, '-');
     Logger.info(`Creating agent: ${normalizedName}`);
@@ -105,7 +112,10 @@ async function create(agentName, options) {
 
   } catch (error) {
     Logger.error('Failed to create custom agent');
-    console.error(chalk.red(error.message));
+    // Only show detailed error in debug mode
+    if (process.env.DEBUG || process.env.NODE_ENV === 'development') {
+      console.error(chalk.gray('Debug:', error.message));
+    }
     process.exit(1);
   }
 }

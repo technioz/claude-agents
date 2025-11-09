@@ -17,14 +17,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/technioz/claude-agents"
+    "url": "git+https://github.com/technioz/claude-agents.git"
   },
   "bugs": {
     "url": "https://github.com/technioz/claude-agents/issues"
   },
   "homepage": "https://github.com/technioz/claude-agents#readme",
   "bin": {
-    "claude-agents": "./bin/cli.js"
+    "claude-agents": "bin/cli.js"
   },
   "main": "src/index.js",
   "files": [
@@ -39,6 +39,10 @@
   },
   "scripts": {
     "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:security": "jest tests/security.test.js",
+    "test:verbose": "jest --verbose --coverage",
     "lint": "eslint src bin",
     "format": "prettier --write \"**/*.{js,json,md}\""
   },

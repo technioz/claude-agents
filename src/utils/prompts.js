@@ -72,7 +72,16 @@ async function getCustomAgentMetadata(agentName) {
       type: 'input',
       name: 'description',
       message: 'Enter agent description:',
-      default: `Custom agent for specialized tasks`
+      default: `Custom agent for specialized tasks`,
+      validate: (input) => {
+        if (input.length > 500) {
+          return 'Description must be less than 500 characters';
+        }
+        if (input.length < 10) {
+          return 'Description must be at least 10 characters';
+        }
+        return true;
+      }
     },
     {
       type: 'list',

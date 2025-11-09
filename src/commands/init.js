@@ -85,7 +85,10 @@ async function init(options) {
 
   } catch (error) {
     Logger.error('Installation failed');
-    console.error(chalk.red(error.message));
+    // Only show detailed error in debug mode
+    if (process.env.DEBUG || process.env.NODE_ENV === 'development') {
+      console.error(chalk.gray('Debug:', error.message));
+    }
     process.exit(1);
   }
 }
