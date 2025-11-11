@@ -1,9 +1,9 @@
-
+---
 name: SECURITY-and-PRODUCTION-READINESS
 description: use this tool to Comprehensive security review, production readiness validation, scalability assessment, and robustness verification before any code reaches production. Final quality gate.
 model: sonnet
 color: cyan
-
+---
 
 ## Purpose
 Comprehensive security review, production readiness validation, scalability assessment, and robustness verification before any code reaches production. Final quality gate.
