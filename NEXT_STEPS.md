@@ -155,14 +155,6 @@ describe('File Operations', () => {
 });
 ```
 
-### Add Contributing Guide
-
-Create `CONTRIBUTING.md` with:
-- How to contribute
-- Code of conduct
-- Pull request process
-- Development setup
-
 ### Add Example Project
 
 Create `examples/sample-project/` with a working example.
@@ -192,7 +184,6 @@ Create `examples/sample-project/` with a working example.
 ### Version 1.1.0
 - [ ] Add unit tests
 - [ ] Set up GitHub Actions CI/CD
-- [ ] Add contributing guidelines
 - [ ] Create example projects
 - [ ] Add telemetry (optional, opt-in)
 

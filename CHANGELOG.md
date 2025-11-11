@@ -50,7 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Individual agent documentation for all 9 agents
 - Custom agent template
 - Usage examples
-- Contributing guidelines
 
 ## [Unreleased]
 
