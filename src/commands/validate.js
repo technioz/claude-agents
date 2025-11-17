@@ -6,6 +6,7 @@ const {
   validateAgent,
   getInstalledAgents
 } = require('../utils/fileOperations');
+const { getPlatformConfig, getDefaultPlatform, isValidPlatform } = require('../utils/platforms');
 const Logger = require('../utils/logger');
 
 /**
@@ -14,22 +15,42 @@ const Logger = require('../utils/logger');
  */
 async function validate(options) {
   try {
-    Logger.header('✅ Validate Agent Configuration');
+    // Step 0: Determine platform (if not using custom path)
+    let platform = getDefaultPlatform();
+    if (!options.path) {
+      if (options.platform) {
+        if (!isValidPlatform(options.platform)) {
+          Logger.error(`Invalid platform: ${options.platform}`);
+          Logger.info(`Supported platforms: ${require('../utils/platforms').getPlatformIds().join(', ')}`);
+          process.exit(1);
+        }
+        platform = options.platform;
+      } else if (options.cursor) {
+        platform = 'cursor';
+      } else if (options.claude) {
+        platform = 'claude';
+      }
+    }
+
+    const platformConfig = getPlatformConfig(platform);
+    Logger.header(`✅ Validate ${platformConfig.displayName} Agent Configuration`);
 
     // Step 1: Determine path to validate
     let targetPath;
     if (options.path) {
       targetPath = path.resolve(options.path);
     } else if (options.global) {
-      targetPath = getTargetPath('global');
+      targetPath = getTargetPath('global', platform);
     } else {
-      targetPath = getTargetPath('local');
+      targetPath = getTargetPath('local', platform);
     }
 
     // Step 2: Check if directory exists
     if (!fs.existsSync(targetPath)) {
       Logger.error(`Directory not found: ${targetPath}`);
-      Logger.info('Run "claude-agents init" to install agents.');
+      if (!options.path) {
+        Logger.info(`Run "claude-agents init --${platform}" to install agents.`);
+      }
       return;
     }
 

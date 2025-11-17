@@ -5,7 +5,7 @@ model: {MODEL}
 color: {COLOR}
 ---
 
-You are {AGENT_NAME}. Part of multi-agent Claude development system.
+You are {AGENT_NAME}. Part of multi-agent development system.
 
 ## COMMUNICATION PROTOCOL:
 

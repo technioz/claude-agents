@@ -1,4 +1,5 @@
 const inquirer = require('inquirer');
+const { getAllPlatforms, getDefaultPlatform, getPlatformConfig } = require('./platforms');
 
 const AVAILABLE_AGENTS = [
   { name: 'ARCHITECT - Design system architecture', value: 'ARCHITECT', checked: true },
@@ -13,10 +14,33 @@ const AVAILABLE_AGENTS = [
 ];
 
 /**
+ * Prompt user to select platform
+ * @returns {Promise<string>} - Platform ID
+ */
+async function getPlatform() {
+  const platforms = getAllPlatforms();
+  const { platform } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'platform',
+      message: 'Which platform do you want to use?',
+      choices: platforms.map(p => ({
+        name: `${p.emoji} ${p.displayName} - ${p.name} integration`,
+        value: p.id
+      })),
+      default: getDefaultPlatform()
+    }
+  ]);
+  return platform;
+}
+
+/**
  * Prompt user for installation location
+ * @param {string} platform - Platform ID (default: 'claude')
  * @returns {Promise<string>} - 'global' or 'local'
  */
-async function getInstallLocation() {
+async function getInstallLocation(platform = getDefaultPlatform()) {
+  const platformConfig = getPlatformConfig(platform);
   const { location } = await inquirer.prompt([
     {
       type: 'list',
@@ -24,11 +48,11 @@ async function getInstallLocation() {
       message: 'Where do you want to install the agents?',
       choices: [
         {
-          name: '🌍 Global (~/.claude/agents) - Available across all projects',
+          name: `🌍 Global (~/${platformConfig.agentsPath}) - Available across all projects`,
           value: 'global'
         },
         {
-          name: '📁 Local (./.claude/agents) - Project-specific agents',
+          name: `📁 Local (./${platformConfig.agentsPath}) - Project-specific agents`,
           value: 'local'
         }
       ],
@@ -168,6 +192,7 @@ async function confirm(message) {
 
 module.exports = {
   AVAILABLE_AGENTS,
+  getPlatform,
   getInstallLocation,
   selectAgents,
   getCustomAgentMetadata,

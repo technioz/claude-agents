@@ -51,6 +51,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom agent template
 - Usage examples
 
+## [1.1.0] - 2025-11-18
+
+### Added
+- **Multi-platform support** - Now supports Claude Code and Cursor platforms
+- Platform registry system for easy addition of future platforms (Codex, etc.)
+- Platform selection flags: `--claude`, `--cursor`, `--platform <platform>`
+- Platform-specific directory structure (`.claude/agents` and `.cursor/agents`)
+- Multi-platform coexistence - agents can be installed for multiple platforms simultaneously
+- Platform-aware CLI commands - all commands now support platform selection
+- `src/utils/platforms.js` - Centralized platform configuration registry
+
+### Changed
+- Updated all commands to support platform parameter
+- File operations now use platform-specific paths
+- CLI banner updated to reflect multi-platform support
+- Custom agent template made platform-agnostic (removed "Claude" reference)
+- Default platform remains Claude Code for backward compatibility
+
+### Technical
+- Refactored file operations to accept platform parameter
+- Added platform abstraction layer for scalable architecture
+- Updated prompts to include platform selection
+- Enhanced list command to show agents across all platforms
+
 ## [Unreleased]
 
 ### Planned

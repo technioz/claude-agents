@@ -7,20 +7,42 @@ const {
   agentExists
 } = require('../utils/fileOperations');
 const {
+  getPlatform,
   getInstallLocation,
   selectAgents,
   confirmOverwrite,
   AVAILABLE_AGENTS
 } = require('../utils/prompts');
+const { getPlatformConfig, getDefaultPlatform, isValidPlatform } = require('../utils/platforms');
 const Logger = require('../utils/logger');
 
 /**
- * Initialize Claude agents
+ * Initialize agents for selected platform
  * @param {Object} options - Command options
  */
 async function init(options) {
   try {
-    Logger.header('🤖 Claude Agents Setup');
+    // Step 0: Determine platform
+    let platform;
+    if (options.platform) {
+      if (!isValidPlatform(options.platform)) {
+        Logger.error(`Invalid platform: ${options.platform}`);
+        Logger.info(`Supported platforms: ${require('../utils/platforms').getPlatformIds().join(', ')}`);
+        process.exit(1);
+      }
+      platform = options.platform;
+    } else if (options.cursor) {
+      platform = 'cursor';
+    } else if (options.claude) {
+      platform = 'claude';
+    } else if (options.yes) {
+      platform = getDefaultPlatform(); // Default to claude for --yes flag
+    } else {
+      platform = await getPlatform();
+    }
+
+    const platformConfig = getPlatformConfig(platform);
+    Logger.header(`${platformConfig.emoji} ${platformConfig.displayName} Agents Setup`);
 
     // Step 1: Determine installation location
     let location;
@@ -31,7 +53,7 @@ async function init(options) {
     } else if (options.yes) {
       location = 'local'; // Default to local for --yes flag
     } else {
-      location = await getInstallLocation();
+      location = await getInstallLocation(platform);
     }
 
     // Step 2: Select agents to install
@@ -55,7 +77,7 @@ async function init(options) {
     }
 
     // Step 3: Check for existing agents
-    const existingAgents = selectedAgents.filter(agent => agentExists(agent, location));
+    const existingAgents = selectedAgents.filter(agent => agentExists(agent, location, platform));
     if (existingAgents.length > 0 && !options.yes) {
       Logger.warn(`The following agents already exist: ${existingAgents.join(', ')}`);
       const shouldOverwrite = await confirmOverwrite('existing agents');
@@ -67,7 +89,7 @@ async function init(options) {
 
     // Step 4: Create directory structure
     const spinner = ora('Creating directory structure...').start();
-    const targetPath = createDirectory(location);
+    const targetPath = createDirectory(location, platform);
     spinner.succeed(chalk.green('Directory structure created'));
 
     // Step 5: Copy agent files
@@ -77,11 +99,11 @@ async function init(options) {
 
     // Step 6: Copy protocol documentation
     spinner.start('Installing protocol documentation...');
-    await copyProtocol(location);
+    await copyProtocol(location, platform);
     spinner.succeed(chalk.green('Protocol documentation installed'));
 
     // Step 7: Show success message
-    showSuccessMessage(targetPath, selectedAgents, location);
+    showSuccessMessage(targetPath, selectedAgents, location, platform);
 
   } catch (error) {
     Logger.error('Installation failed');
@@ -98,8 +120,11 @@ async function init(options) {
  * @param {string} targetPath - Installation path
  * @param {Array<string>} agents - Installed agents
  * @param {string} location - Installation location
+ * @param {string} platform - Platform ID
  */
-function showSuccessMessage(targetPath, agents, location) {
+function showSuccessMessage(targetPath, agents, location, platform) {
+  const platformConfig = getPlatformConfig(platform);
+  
   Logger.newLine();
   Logger.success('Setup Complete!');
   Logger.newLine();
@@ -117,16 +142,16 @@ function showSuccessMessage(targetPath, agents, location) {
 
   Logger.newLine();
   Logger.header('📚 Next Steps:');
-  Logger.item('Review agents in .claude/agents/');
+  Logger.item(`Review agents in ${platformConfig.agentsPath}/`);
   Logger.item('Read AGENTS_PROTOCOL.md for usage guide');
-  Logger.item('Start using agents with Claude Code');
+  Logger.item(`Start using agents with ${platformConfig.displayName}`);
   Logger.newLine();
 
   Logger.info('📖 Documentation: https://github.com/technioz/claude-agents');
   Logger.info('🐛 Issues: https://github.com/technioz/claude-agents/issues');
   Logger.newLine();
 
-  Logger.success('Happy coding with Claude Agents! 🚀');
+  Logger.success(`Happy coding with ${platformConfig.displayName} Agents! 🚀`);
   Logger.newLine();
 }
 

@@ -1,15 +1,17 @@
 {
   "name": "@technioz/claude-agents",
-  "version": "1.0.4",
-  "description": "Multi-agent orchestration system for Claude Code - Complete SDLC automation with 9 specialized agents",
+  "version": "1.1.0",
+  "description": "Multi-platform, multi-agent orchestration system - Complete SDLC automation with 9 specialized agents for Claude Code, Cursor, and more",
   "keywords": [
     "claude",
+    "cursor",
     "ai-agents",
     "orchestrator",
     "sdlc",
     "automation",
     "developer-tools",
     "multi-agent",
+    "multi-platform",
     "architecture",
     "claude-code"
   ],

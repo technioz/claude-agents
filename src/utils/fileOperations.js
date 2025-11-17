@@ -1,6 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const os = require('os');
+const { getPlatformConfig, getDefaultPlatform } = require('./platforms');
 
 /**
  * Sanitize agent name to prevent path traversal and special characters
@@ -23,25 +24,30 @@ function sanitizeAgentName(name) {
 }
 
 /**
- * Get the target directory path based on installation location
+ * Get the target directory path based on installation location and platform
  * @param {string} location - 'global' or 'local'
- * @returns {string} - Full path to .claude/agents directory
+ * @param {string} platform - Platform ID (default: 'claude')
+ * @returns {string} - Full path to platform agents directory
  */
-function getTargetPath(location) {
+function getTargetPath(location, platform = getDefaultPlatform()) {
+  const platformConfig = getPlatformConfig(platform);
+  const agentsPathParts = platformConfig.agentsPath.split('/');
+  
   if (location === 'global') {
-    return path.join(os.homedir(), '.claude', 'agents');
+    return path.join(os.homedir(), ...agentsPathParts);
   } else {
-    return path.join(process.cwd(), '.claude', 'agents');
+    return path.join(process.cwd(), ...agentsPathParts);
   }
 }
 
 /**
- * Create .claude/agents directory structure
+ * Create platform agents directory structure
  * @param {string} location - 'global' or 'local'
+ * @param {string} platform - Platform ID (default: 'claude')
  * @returns {string} - Path to created directory
  */
-function createDirectory(location) {
-  const targetPath = getTargetPath(location);
+function createDirectory(location, platform = getDefaultPlatform()) {
+  const targetPath = getTargetPath(location, platform);
 
   // Create directory if it doesn't exist
   fs.ensureDirSync(targetPath);
@@ -75,13 +81,17 @@ async function copyAgents(agents, targetPath) {
 }
 
 /**
- * Copy AGENTS_PROTOCOL.md to .claude directory
+ * Copy AGENTS_PROTOCOL.md to platform directory
  * @param {string} location - 'global' or 'local'
+ * @param {string} platform - Platform ID (default: 'claude')
  */
-async function copyProtocol(location) {
+async function copyProtocol(location, platform = getDefaultPlatform()) {
+  const platformConfig = getPlatformConfig(platform);
+  const directoryParts = platformConfig.directory.split('/');
+  
   const targetBase = location === 'global'
-    ? path.join(os.homedir(), '.claude')
-    : path.join(process.cwd(), '.claude');
+    ? path.join(os.homedir(), ...directoryParts)
+    : path.join(process.cwd(), ...directoryParts);
 
   const sourcePath = path.join(__dirname, '../../templates/AGENTS_PROTOCOL.md');
   const targetPath = path.join(targetBase, 'AGENTS_PROTOCOL.md');
@@ -92,10 +102,11 @@ async function copyProtocol(location) {
 /**
  * Get list of installed agents
  * @param {string} location - 'global' or 'local'
+ * @param {string} platform - Platform ID (default: 'claude')
  * @returns {Array<string>} - List of installed agent names
  */
-function getInstalledAgents(location) {
-  const targetPath = getTargetPath(location);
+function getInstalledAgents(location, platform = getDefaultPlatform()) {
+  const targetPath = getTargetPath(location, platform);
 
   if (!fs.existsSync(targetPath)) {
     return [];
@@ -111,10 +122,11 @@ function getInstalledAgents(location) {
  * Check if agent exists in target directory
  * @param {string} agentName - Name of the agent
  * @param {string} location - 'global' or 'local'
+ * @param {string} platform - Platform ID (default: 'claude')
  * @returns {boolean} - True if agent exists
  */
-function agentExists(agentName, location) {
-  const targetPath = getTargetPath(location);
+function agentExists(agentName, location, platform = getDefaultPlatform()) {
+  const targetPath = getTargetPath(location, platform);
   const agentFile = path.join(targetPath, `${agentName}.md`);
   return fs.existsSync(agentFile);
 }
@@ -123,13 +135,14 @@ function agentExists(agentName, location) {
  * Update existing agent file
  * @param {string} agentName - Name of the agent to update
  * @param {string} location - 'global' or 'local'
+ * @param {string} platform - Platform ID (default: 'claude')
  */
-async function updateAgent(agentName, location) {
+async function updateAgent(agentName, location, platform = getDefaultPlatform()) {
   // Sanitize agent name
   const sanitizedName = sanitizeAgentName(agentName);
 
   const templatePath = path.join(__dirname, '../../templates/agents', `${sanitizedName}.md`);
-  const targetPath = path.join(getTargetPath(location), `${sanitizedName}.md`);
+  const targetPath = path.join(getTargetPath(location, platform), `${sanitizedName}.md`);
 
   if (!fs.existsSync(templatePath)) {
     throw new Error(`Agent template not found: ${sanitizedName}.md`);
@@ -142,13 +155,15 @@ async function updateAgent(agentName, location) {
  * Create custom agent from template
  * @param {string} agentName - Name of the custom agent
  * @param {string} location - 'global' or 'local'
+ * @param {Object} metadata - Agent metadata
+ * @param {string} platform - Platform ID (default: 'claude')
  */
-async function createCustomAgent(agentName, location, metadata) {
+async function createCustomAgent(agentName, location, metadata, platform = getDefaultPlatform()) {
   // Sanitize agent name
   const sanitizedName = sanitizeAgentName(agentName);
 
   const templatePath = path.join(__dirname, '../../templates/custom-agent-template.md');
-  const targetPath = path.join(getTargetPath(location), `${sanitizedName}.md`);
+  const targetPath = path.join(getTargetPath(location, platform), `${sanitizedName}.md`);
 
   // Read template
   let template = await fs.readFile(templatePath, 'utf8');

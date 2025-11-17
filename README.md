@@ -1,14 +1,32 @@
 # @technioz/claude-agents
 
-> Multi-agent orchestration system for Claude Code - Complete SDLC automation with 9 specialized agents
+> Multi-platform, multi-agent orchestration system - Complete SDLC automation with 9 specialized agents for Claude Code, Cursor, and more
 
 [![npm version](https://img.shields.io/npm/v/@technioz/claude-agents.svg)](https://www.npmjs.com/package/@technioz/claude-agents)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/@technioz/claude-agents.svg)](https://nodejs.org)
 
+## 🎉 What's New in v1.1.0
+
+**Multi-Platform Support!** 🚀
+
+- ✅ **Claude Code & Cursor** - Now supports both platforms with a single codebase
+- ✅ **Platform Registry** - Scalable architecture for easy addition of future platforms (Codex, etc.)
+- ✅ **Platform Flags** - Use `--claude`, `--cursor`, or `--platform` with all commands
+- ✅ **Coexistence** - Install agents for multiple platforms in the same project
+- ✅ **Backward Compatible** - Defaults to Claude Code, no breaking changes
+
+[View Changelog](CHANGELOG.md) | [Full Release Notes](https://github.com/technioz/claude-agents/releases/tag/v1.1.0)
+
 ## 🚀 What is Claude Agents?
 
-Claude Agents is a powerful multi-agent orchestration system designed to work with Claude Code. It provides a complete Software Development Life Cycle (SDLC) automation through 9 specialized AI agents that work together to build, test, secure, and deploy your applications.
+Claude Agents is a powerful multi-platform, multi-agent orchestration system designed to work with Claude Code, Cursor, and other AI-powered development environments. It provides a complete Software Development Life Cycle (SDLC) automation through 9 specialized AI agents that work together to build, test, secure, and deploy your applications.
+
+### Supported Platforms
+
+- **🤖 Claude Code** - Anthropic Claude integration (default)
+- **🖱️ Cursor** - Cursor IDE integration
+- *More platforms coming soon...*
 
 ### The 9 Agents
 
@@ -37,8 +55,14 @@ npx @technioz/claude-agents init
 ### Initialize Agents in Your Project
 
 ```bash
-# Interactive setup (recommended)
+# Interactive setup (recommended) - will prompt for platform
 claude-agents init
+
+# Install for Claude Code (default)
+claude-agents init --claude
+
+# Install for Cursor
+claude-agents init --cursor
 
 # Install all agents locally
 claude-agents init --local
@@ -49,12 +73,16 @@ claude-agents init --global
 # Install specific agents
 claude-agents init --agents ARCHITECT DEVELOPER DESIGNER
 
-# Skip prompts and install all agents
+# Install for Cursor with specific agents
+claude-agents init --cursor --agents ARCHITECT DEVELOPER
+
+# Skip prompts and install all agents (defaults to Claude Code)
 claude-agents init --yes
 ```
 
 ## 🎯 Features
 
+- ✅ **Multi-Platform Support** - Works with Claude Code, Cursor, and more
 - ✅ **Complete SDLC Coverage** - From architecture to deployment
 - ✅ **Interactive CLI** - User-friendly setup wizard
 - ✅ **Flexible Installation** - Global or project-specific agents
@@ -73,14 +101,24 @@ claude-agents init --yes
 Install agents in your project or globally.
 
 ```bash
-# Interactive setup
+# Interactive setup (prompts for platform)
 claude-agents init
 
-# Options
-claude-agents init --global          # Install globally (~/.claude/agents)
-claude-agents init --local           # Install locally (./.claude/agents)
+# Platform selection
+claude-agents init --claude          # Use Claude Code (default)
+claude-agents init --cursor          # Use Cursor
+claude-agents init --platform cursor # Specify platform explicitly
+
+# Installation location
+claude-agents init --global          # Install globally
+claude-agents init --local            # Install locally
+
+# Agent selection
 claude-agents init --agents A B C    # Install specific agents
 claude-agents init --yes             # Skip prompts, install all
+
+# Combined example
+claude-agents init --cursor --local --agents ARCHITECT DEVELOPER
 ```
 
 #### `list` - List Agents
@@ -91,8 +129,12 @@ View all available or installed agents.
 # List all available agents
 claude-agents list
 
-# List only installed agents
+# List installed agents (shows all platforms if no platform specified)
 claude-agents list --installed
+
+# List installed agents for specific platform
+claude-agents list --installed --claude
+claude-agents list --installed --cursor
 ```
 
 #### `update` - Update Agents
@@ -100,8 +142,12 @@ claude-agents list --installed
 Update existing agents to the latest version.
 
 ```bash
-# Interactive update
+# Interactive update (prompts for platform)
 claude-agents update
+
+# Update for specific platform
+claude-agents update --claude
+claude-agents update --cursor
 
 # Update global agents
 claude-agents update --global
@@ -111,6 +157,9 @@ claude-agents update --local
 
 # Update specific agents
 claude-agents update --agents ARCHITECT DEVELOPER
+
+# Combined example
+claude-agents update --cursor --local --agents ARCHITECT
 ```
 
 #### `create` - Create Custom Agent
@@ -118,14 +167,21 @@ claude-agents update --agents ARCHITECT DEVELOPER
 Create a new custom agent from template.
 
 ```bash
-# Interactive creation
+# Interactive creation (prompts for platform)
 claude-agents create MY-CUSTOM-AGENT
+
+# Create for specific platform
+claude-agents create MY-CUSTOM-AGENT --claude
+claude-agents create MY-CUSTOM-AGENT --cursor
 
 # Create in global directory
 claude-agents create MY-CUSTOM-AGENT --global
 
 # Create in local directory
 claude-agents create MY-CUSTOM-AGENT --local
+
+# Combined example
+claude-agents create MY-CUSTOM-AGENT --cursor --local
 ```
 
 #### `validate` - Validate Configuration
@@ -133,13 +189,20 @@ claude-agents create MY-CUSTOM-AGENT --local
 Validate agent configuration files.
 
 ```bash
-# Validate local agents
+# Validate local agents (defaults to Claude Code)
 claude-agents validate
+
+# Validate for specific platform
+claude-agents validate --claude
+claude-agents validate --cursor
 
 # Validate global agents
 claude-agents validate --global
 
-# Validate specific path
+# Validate local agents
+claude-agents validate --local
+
+# Validate specific path (overrides platform)
 claude-agents validate --path /path/to/agents
 ```
 
@@ -178,8 +241,9 @@ See `AGENTS_PROTOCOL.md` for complete protocol specification.
 
 ### File Structure
 
-After installation, your `.claude` directory will contain:
+After installation, agents are stored in platform-specific directories:
 
+**Claude Code (default):**
 ```
 .claude/
 ├── agents/
@@ -194,6 +258,18 @@ After installation, your `.claude` directory will contain:
 │   └── ORCHESTRATOR.md
 └── AGENTS_PROTOCOL.md
 ```
+
+**Cursor:**
+```
+.cursor/
+├── agents/
+│   ├── ARCHITECT.md
+│   ├── DEVELOPER.md
+│   └── ... (same agent files)
+└── AGENTS_PROTOCOL.md
+```
+
+You can have agents installed for multiple platforms simultaneously. Each platform maintains its own directory structure.
 
 ### Agent Metadata
 
@@ -256,10 +332,13 @@ The **SECURITY-and-PRODUCTION-READINESS** agent acts as a mandatory quality gate
 ### Example 1: Full Feature Development
 
 ```bash
-# Initialize all agents
+# Initialize all agents for Claude Code
 claude-agents init --yes
 
-# Start Claude Code and request a feature
+# Or for Cursor
+claude-agents init --cursor --yes
+
+# Start your IDE (Claude Code or Cursor) and request a feature
 # "Build a chat interface with model selector"
 
 # Agents will automatically:
@@ -276,10 +355,13 @@ claude-agents init --yes
 ### Example 2: Security Review Only
 
 ```bash
-# Install just security agent
+# Install just security agent for Claude Code
 claude-agents init --agents SECURITY-and-PRODUCTION-READINESS
 
-# Use in Claude Code for security audits
+# Or for Cursor
+claude-agents init --cursor --agents SECURITY-and-PRODUCTION-READINESS
+
+# Use in your IDE for security audits
 ```
 
 ### Example 3: Update Workflow
@@ -288,11 +370,30 @@ claude-agents init --agents SECURITY-and-PRODUCTION-READINESS
 # Check for new agent versions
 claude-agents list --installed
 
-# Update all agents
-claude-agents update --yes
+# Update all agents for Claude Code
+claude-agents update --claude --yes
+
+# Update all agents for Cursor
+claude-agents update --cursor --yes
 
 # Validate after update
-claude-agents validate
+claude-agents validate --claude
+claude-agents validate --cursor
+```
+
+### Example 4: Multi-Platform Setup
+
+```bash
+# Install for both platforms in the same project
+claude-agents init --claude --local --agents ARCHITECT DEVELOPER
+claude-agents init --cursor --local --agents ARCHITECT DEVELOPER
+
+# List agents from all platforms
+claude-agents list --installed
+
+# Work with platform-specific commands
+claude-agents update --claude --local
+claude-agents update --cursor --local
 ```
 
 ## 🛠️ Development
@@ -336,22 +437,27 @@ MIT License - see [LICENSE](LICENSE) file for details
 - **npm**: https://www.npmjs.com/package/@technioz/claude-agents
 - **Issues**: https://github.com/technioz/claude-agents/issues
 - **Claude Code**: https://claude.com/claude-code
+- **Cursor**: https://cursor.sh
 
 ## 🙏 Acknowledgments
 
-- Built for use with [Claude Code](https://claude.com/claude-code)
+- Built for use with [Claude Code](https://claude.com/claude-code) and [Cursor](https://cursor.sh)
 - Inspired by multi-agent systems and SDLC automation
 - Uses [shadcn/ui](https://ui.shadcn.com/) design patterns
 
 ## 📊 Project Stats
 
 - 🤖 **9 Specialized Agents**
+- 🌐 **Multi-Platform Support** (Claude Code, Cursor, and more)
 - 📦 **Zero Configuration** needed
 - 🔄 **Complete SDLC** coverage
 - ✅ **Production Ready**
+- 🏗️ **Scalable Architecture** - Easy to add new platforms
 
 ## 🚀 Roadmap
 
+- [x] **Multi-platform support** (Claude Code & Cursor) - ✅ v1.1.0
+- [ ] Additional platform support (Codex, etc.)
 - [ ] Agent marketplace for community templates
 - [ ] Visual workflow designer
 - [ ] Integration with popular CI/CD platforms

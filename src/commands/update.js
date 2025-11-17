@@ -6,9 +6,12 @@ const {
   getTargetPath
 } = require('../utils/fileOperations');
 const {
+  getPlatform,
+  getInstallLocation,
   selectAgentsToUpdate,
   confirm
 } = require('../utils/prompts');
+const { getPlatformConfig, getDefaultPlatform, isValidPlatform } = require('../utils/platforms');
 const Logger = require('../utils/logger');
 
 /**
@@ -17,7 +20,25 @@ const Logger = require('../utils/logger');
  */
 async function update(options) {
   try {
-    Logger.header('🔄 Update Claude Agents');
+    // Step 0: Determine platform
+    let platform;
+    if (options.platform) {
+      if (!isValidPlatform(options.platform)) {
+        Logger.error(`Invalid platform: ${options.platform}`);
+        Logger.info(`Supported platforms: ${require('../utils/platforms').getPlatformIds().join(', ')}`);
+        process.exit(1);
+      }
+      platform = options.platform;
+    } else if (options.cursor) {
+      platform = 'cursor';
+    } else if (options.claude) {
+      platform = 'claude';
+    } else {
+      platform = await getPlatform();
+    }
+
+    const platformConfig = getPlatformConfig(platform);
+    Logger.header(`🔄 Update ${platformConfig.displayName} Agents`);
 
     // Step 1: Determine location
     let location;
@@ -26,28 +47,16 @@ async function update(options) {
     } else if (options.local) {
       location = 'local';
     } else {
-      // Ask user
-      const { useGlobal } = await require('inquirer').prompt([
-        {
-          type: 'list',
-          name: 'useGlobal',
-          message: 'Which agents do you want to update?',
-          choices: [
-            { name: 'Local (./.claude/agents)', value: false },
-            { name: 'Global (~/.claude/agents)', value: true }
-          ]
-        }
-      ]);
-      location = useGlobal ? 'global' : 'local';
+      location = await getInstallLocation(platform);
     }
 
     // Step 2: Get installed agents
-    const installedAgents = getInstalledAgents(location);
+    const installedAgents = getInstalledAgents(location, platform);
 
     if (installedAgents.length === 0) {
-      const targetPath = getTargetPath(location);
+      const targetPath = getTargetPath(location, platform);
       Logger.warn(`No agents found at ${targetPath}`);
-      Logger.info('Run "claude-agents init" to install agents.');
+      Logger.info(`Run "claude-agents init --${platform}" to install agents.`);
       return;
     }
 
@@ -87,7 +96,7 @@ async function update(options) {
 
     for (const agent of agentsToUpdate) {
       try {
-        await updateAgent(agent, location);
+        await updateAgent(agent, location, platform);
         successCount++;
       } catch (error) {
         failCount++;

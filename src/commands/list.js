@@ -1,18 +1,42 @@
 const chalk = require('chalk');
 const { getInstalledAgents } = require('../utils/fileOperations');
 const { AVAILABLE_AGENTS } = require('../utils/prompts');
+const { getAllPlatforms, getPlatformConfig, getDefaultPlatform, isValidPlatform } = require('../utils/platforms');
 const Logger = require('../utils/logger');
 
 /**
  * List all available agents
  * @param {Object} options - Command options
  */
-function list(options) {
-  Logger.header('📋 Claude Agents');
+async function list(options) {
+  // Determine platform
+  let platform;
+  if (options.platform) {
+    if (!isValidPlatform(options.platform)) {
+      Logger.error(`Invalid platform: ${options.platform}`);
+      Logger.info(`Supported platforms: ${require('../utils/platforms').getPlatformIds().join(', ')}`);
+      process.exit(1);
+    }
+    platform = options.platform;
+  } else if (options.cursor) {
+    platform = 'cursor';
+  } else if (options.claude) {
+    platform = 'claude';
+  } else {
+    // If no platform specified and showing installed, check all platforms
+    if (options.installed) {
+      showInstalledAgentsAllPlatforms();
+      return;
+    }
+    platform = getDefaultPlatform();
+  }
+
+  const platformConfig = getPlatformConfig(platform);
+  Logger.header(`📋 ${platformConfig.displayName} Agents`);
 
   if (options.installed) {
-    // Show installed agents
-    showInstalledAgents();
+    // Show installed agents for specific platform
+    showInstalledAgents(platform);
   } else {
     // Show all available agents
     showAllAgents();
@@ -103,14 +127,16 @@ function showAllAgents() {
 }
 
 /**
- * Show installed agents
+ * Show installed agents for a specific platform
+ * @param {string} platform - Platform ID
  */
-function showInstalledAgents() {
-  const localAgents = getInstalledAgents('local');
-  const globalAgents = getInstalledAgents('global');
+function showInstalledAgents(platform) {
+  const platformConfig = getPlatformConfig(platform);
+  const localAgents = getInstalledAgents('local', platform);
+  const globalAgents = getInstalledAgents('global', platform);
 
   if (localAgents.length > 0) {
-    Logger.info('📁 Local Agents (./.claude/agents):\n');
+    Logger.info(`📁 Local Agents (./${platformConfig.agentsPath}):\n`);
     localAgents.forEach(agent => {
       Logger.item(chalk.cyan(agent));
     });
@@ -121,7 +147,7 @@ function showInstalledAgents() {
   }
 
   if (globalAgents.length > 0) {
-    Logger.info('🌍 Global Agents (~/.claude/agents):\n');
+    Logger.info(`🌍 Global Agents (~/${platformConfig.agentsPath}):\n`);
     globalAgents.forEach(agent => {
       Logger.item(chalk.cyan(agent));
     });
@@ -132,6 +158,41 @@ function showInstalledAgents() {
   }
 
   if (localAgents.length === 0 && globalAgents.length === 0) {
+    Logger.info(`To install agents, run: claude-agents init --${platform}`);
+    Logger.newLine();
+  }
+}
+
+/**
+ * Show installed agents across all platforms
+ */
+function showInstalledAgentsAllPlatforms() {
+  Logger.header('📋 Installed Agents (All Platforms)');
+  Logger.newLine();
+
+  const platforms = getAllPlatforms();
+  let hasAnyAgents = false;
+
+  for (const platform of platforms) {
+    const localAgents = getInstalledAgents('local', platform.id);
+    const globalAgents = getInstalledAgents('global', platform.id);
+
+    if (localAgents.length > 0 || globalAgents.length > 0) {
+      hasAnyAgents = true;
+      Logger.info(`${platform.emoji} ${platform.displayName}:`);
+      
+      if (localAgents.length > 0) {
+        Logger.item(`  Local (./${platform.agentsPath}): ${localAgents.join(', ')}`);
+      }
+      if (globalAgents.length > 0) {
+        Logger.item(`  Global (~/${platform.agentsPath}): ${globalAgents.join(', ')}`);
+      }
+      Logger.newLine();
+    }
+  }
+
+  if (!hasAnyAgents) {
+    Logger.warn('No agents installed in any platform');
     Logger.info('To install agents, run: claude-agents init');
     Logger.newLine();
   }

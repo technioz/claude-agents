@@ -6,9 +6,12 @@ const {
   createDirectory
 } = require('../utils/fileOperations');
 const {
+  getPlatform,
+  getInstallLocation,
   getCustomAgentMetadata,
   confirmOverwrite
 } = require('../utils/prompts');
+const { getPlatformConfig, getDefaultPlatform, isValidPlatform } = require('../utils/platforms');
 const Logger = require('../utils/logger');
 
 /**
@@ -39,6 +42,25 @@ async function create(agentName, options) {
     Logger.info(`Creating agent: ${normalizedName}`);
     Logger.newLine();
 
+    // Step 0: Determine platform
+    let platform;
+    if (options.platform) {
+      if (!isValidPlatform(options.platform)) {
+        Logger.error(`Invalid platform: ${options.platform}`);
+        Logger.info(`Supported platforms: ${require('../utils/platforms').getPlatformIds().join(', ')}`);
+        process.exit(1);
+      }
+      platform = options.platform;
+    } else if (options.cursor) {
+      platform = 'cursor';
+    } else if (options.claude) {
+      platform = 'claude';
+    } else {
+      platform = await getPlatform();
+    }
+
+    const platformConfig = getPlatformConfig(platform);
+
     // Step 1: Determine location
     let location;
     if (options.global) {
@@ -46,23 +68,11 @@ async function create(agentName, options) {
     } else if (options.local) {
       location = 'local';
     } else {
-      // Ask user
-      const { useGlobal } = await require('inquirer').prompt([
-        {
-          type: 'list',
-          name: 'useGlobal',
-          message: 'Where do you want to create the agent?',
-          choices: [
-            { name: 'Local (./.claude/agents)', value: false },
-            { name: 'Global (~/.claude/agents)', value: true }
-          ]
-        }
-      ]);
-      location = useGlobal ? 'global' : 'local';
+      location = await getInstallLocation(platform);
     }
 
     // Step 2: Check if agent already exists
-    if (agentExists(normalizedName, location)) {
+    if (agentExists(normalizedName, location, platform)) {
       Logger.warn(`Agent ${normalizedName} already exists`);
       const shouldOverwrite = await confirmOverwrite(normalizedName);
 
@@ -78,12 +88,12 @@ async function create(agentName, options) {
     const metadata = await getCustomAgentMetadata(normalizedName);
 
     // Step 4: Create directory if needed
-    const targetPath = createDirectory(location);
+    const targetPath = createDirectory(location, platform);
 
     // Step 5: Create agent file
     const spinner = ora('Creating custom agent...').start();
 
-    await createCustomAgent(normalizedName, location, metadata);
+    await createCustomAgent(normalizedName, location, metadata, platform);
 
     spinner.succeed(chalk.green('Custom agent created successfully!'));
 
@@ -104,7 +114,7 @@ async function create(agentName, options) {
     Logger.item('Define Purpose, Duty, Instructions, and Limits');
     Logger.item('Add specific capabilities and knowledge requirements');
     Logger.item('Define integration with other agents');
-    Logger.item('Test your agent with Claude Code');
+    Logger.item(`Test your agent with ${platformConfig.displayName}`);
     Logger.newLine();
 
     Logger.info(`📝 Edit: ${targetPath}/${normalizedName}.md`);
