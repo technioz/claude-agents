@@ -17,7 +17,7 @@ console.log(chalk.gray('Multi-agent orchestration system for Claude Code, Cursor
 program
   .name('claude-agents')
   .description('Multi-agent orchestration system supporting multiple platforms')
-  .version('1.1.0');
+  .version('1.2.0');
 
 // Init command
 program
@@ -30,7 +30,14 @@ program
   .option('-p, --platform <platform>', 'Specify platform: claude or cursor')
   .option('-a, --agents <agents...>', 'Select specific agents to install (e.g., ARCHITECT DEVELOPER)')
   .option('-y, --yes', 'Skip prompts and install all agents')
-  .action(init);
+  .action(async (options) => {
+    try {
+      await init(options);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
 
 // Update command
 program
@@ -42,7 +49,14 @@ program
   .option('--cursor', 'Use Cursor platform')
   .option('-p, --platform <platform>', 'Specify platform: claude or cursor')
   .option('-a, --agents <agents...>', 'Update specific agents only')
-  .action(update);
+  .action(async (options) => {
+    try {
+      await update(options);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
 
 // List command
 program
@@ -52,7 +66,14 @@ program
   .option('--claude', 'Use Claude Code platform (default)')
   .option('--cursor', 'Use Cursor platform')
   .option('-p, --platform <platform>', 'Specify platform: claude or cursor')
-  .action(list);
+  .action(async (options) => {
+    try {
+      await list(options);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
 
 // Create command
 program
@@ -63,7 +84,14 @@ program
   .option('--claude', 'Use Claude Code platform (default)')
   .option('--cursor', 'Use Cursor platform')
   .option('-p, --platform <platform>', 'Specify platform: claude or cursor')
-  .action(create);
+  .action(async (name, options) => {
+    try {
+      await create(name, options);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
 
 // Validate command
 program
@@ -75,7 +103,14 @@ program
   .option('--claude', 'Use Claude Code platform (default)')
   .option('--cursor', 'Use Cursor platform')
   .option('-p, --platform <platform>', 'Specify platform: claude or cursor')
-  .action(validate);
+  .action(async (options) => {
+    try {
+      await validate(options);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
 
 // Parse arguments
 program.parse();

@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/@technioz/claude-agents.svg)](https://nodejs.org)
 
-## 🎉 What's New in v1.1.0
+## 🎉 What's New in v1.2.0
 
 **Multi-Platform Support!** 🚀
 
@@ -16,7 +16,7 @@
 - ✅ **Coexistence** - Install agents for multiple platforms in the same project
 - ✅ **Backward Compatible** - Defaults to Claude Code, no breaking changes
 
-[View Changelog](CHANGELOG.md) | [Full Release Notes](https://github.com/technioz/claude-agents/releases/tag/v1.1.0)
+[View Changelog](CHANGELOG.md) | [Full Release Notes](https://github.com/technioz/claude-agents/releases/tag/v1.2.0)
 
 ## 🚀 What is Claude Agents?
 
@@ -456,7 +456,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## 🚀 Roadmap
 
-- [x] **Multi-platform support** (Claude Code & Cursor) - ✅ v1.1.0
+- [x] **Multi-platform support** (Claude Code & Cursor) - ✅ v1.2.0
 - [ ] Additional platform support (Codex, etc.)
 - [ ] Agent marketplace for community templates
 - [ ] Visual workflow designer

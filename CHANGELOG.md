@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom agent template
 - Usage examples
 
-## [1.1.0] - 2025-11-18
+## [1.2.0] - 2025-11-18
 
 ### Added
 - **Multi-platform support** - Now supports Claude Code and Cursor platforms
